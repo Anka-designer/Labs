@@ -1,0 +1,248 @@
+#include <iostream>
+#include <fstream>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+void ReadArr(int*, int);
+void InsArr(int);
+void PrintArr(int*, int);
+void Back_Arr(int*&, int&);
+void Front_Arr(int*&, int&);
+void Del_Arr_back(int*&, int&);
+void Del_Arr_front(int*&, int&);
+void Add_Arr_k(int*&, int&);
+void Del_Arr_k(int*&, int&);
+void Push_Arr(int*&, int&);
+void DelArr(int*&, int&);
+
+
+int main()
+{
+    int size_arr;
+    setlocale(LC_ALL, "ru");
+    cout << "Введите количество элементов : " << endl;
+    cin >> size_arr;
+    int* arr = new int[size_arr];
+    InsArr(size_arr);
+    ReadArr(arr, size_arr);
+    PrintArr(arr, size_arr);
+    cout << endl;
+    
+    //Back_Arr(arr, size_arr); // добавить элемент в конец массива
+    //Front_Arr(arr, size_arr); // добавить элемент в начало массива
+    //Add_Arr_k(arr, size_arr); // добавить элемент на к позицию
+    //Del_Arr_back(arr, size_arr); // удалить последние элементы
+    //Del_Arr_front(arr, size_arr); // удалить первые элементы
+    //Del_Arr_k(arr, size_arr); //удалить к элемент массива
+    //Push_Arr(arr, size_arr);
+    DelArr(arr, size_arr);
+
+
+    PrintArr(arr, size_arr); // выводит результат функции 
+
+    return 0;
+}
+
+void InsArr(int j) {
+    fstream f_out("massiv.txt", ios::out);
+    for (int i = 0; i < j; i++) {
+        f_out << rand() % 10 << " ";
+    }
+    f_out.close();
+}
+
+void ReadArr(int* arr, int j) {
+    fstream f_in("massiv.txt", ios::in);
+    if (f_in) {
+        for (int i = 0; i < j; i++) {
+            f_in >> arr[i];
+        }
+        f_in.close();
+    }
+}
+
+void PrintArr(int* arr, int j) {
+    for (int i = 0; i < j; i++) {
+        cout << "[" << i << "]: " << arr[i] << endl;
+    }
+
+}
+
+void Back_Arr(int *&arr, int &n) {
+    int k; 
+    cout << "Сколько элементов массива добавить в конец : ";
+    cin >> k;
+    int* newArray = new int[n];
+    for (int i = 0; i < n; i++)
+    {
+       newArray[i] = arr[i];
+    }
+    cout << "Введите добавляемые элементы, " << "имеется : " << k << endl;
+    for (int i = n; i < (n+k); i++)
+    {
+        cin >> newArray[i];
+    }
+    delete[]arr;
+    arr = newArray;
+    n += k; 
+}
+
+void Front_Arr(int*& arr, int& n)
+{
+    int k;
+    cout << "Сколько элементов массива добавить в начало : ";
+    cin >> k;
+    int* newArray = new int[n];
+    for (int i = 0; i < n; i++)
+    {
+        newArray[i+k] = arr[i];  
+    }
+    cout << "Введите добавляемые элементы, " << "имеется : " << k << endl;
+    for (int i = 0; i < k; i++)
+    {
+        cin >> newArray[i];
+    }
+    delete[]arr;
+    arr = newArray;
+    n += k;
+}
+
+void Add_Arr_k(int*& arr, int& n)
+{
+    int k;
+    cout << "На какое место (мест имеется " << n << ") массива добавить элемент: ";
+    cin >> k;
+    int* newArray = new int[n];
+    for (int i = 0; i < k; i++)
+    {
+        newArray[i] = arr[i]; //заполнение пустых ячеек
+    }
+    cout << "Введите добавляемый элемент: ";
+    cin >> newArray[k - 1];
+    for (int i = k; i < (n + 1); i++)
+    {
+        newArray[i] = arr[i - 1];
+    }
+    delete[]arr;
+    arr = newArray;
+    n++;
+}
+
+void Del_Arr_back(int*& arr, int& n)
+{
+    int k;
+    cout << "Сколько элементов массива удалить в конце массива: ";
+    cin >> k;
+    int* newArray = new int[n];
+    for (int i = 0; i < n; i++)
+    {
+        newArray[i] = arr[i];
+    }
+    delete[]arr;
+    arr = newArray;
+    n -= k; // удаление ячеек
+
+}
+
+void Del_Arr_front(int*& arr, int& n)
+{
+    int k;
+    cout << "Сколько элементов массива удалить в начале массива: ";
+    cin >> k;
+    int* newArray = new int[n+k];
+    for (int i = 0; i < n; i++)
+    {
+        newArray[i] = arr[i+k];
+    }
+    delete[]arr;
+    arr = newArray;
+    n -= k;
+
+}
+
+void Del_Arr_k(int*& arr, int& n) 
+{
+    int k;
+    cout << "Какой элемент (всего элементов " << n << " штук) массива удалить (введите номер от 1, до " << n << "): ";
+    cin >> k;
+    int* newArray = new int[n - 1];
+    for (int i = 0; i < k; i++)
+    {
+        newArray[i] = arr[i]; 
+    }
+    for (int i = k; i < n - 1; i++)
+    {
+        newArray[i] = arr[i+1];
+    }
+    delete[]arr;
+    arr = newArray;
+    n--;
+}
+
+void Push_Arr(int*& arr, int& n)
+{
+    int k, result = 0, buf;
+    cout << "После какого какого встреченного в массиве значения добавить элемент: ";
+    cin >> k;
+    for (int i = 0; i < n; i++)
+    {
+        if (arr[i] == k) { result = 1; buf = i; break; }
+    }
+    if (result == 1) {
+        int* newArray = new int[n + 1];
+        for (int i = 0; i < (buf + 1); i++)
+        {
+            newArray[i] = arr[i];
+        }
+        cout << "Введите добавляемый элемент: ";
+        cin >> newArray[buf + 1];
+        for (int i = buf + 2; i < (n + 1); i++)
+        {
+            newArray[i] = arr[i - 1];
+        }
+        delete[]arr;
+        arr = newArray;
+        n++;
+    }
+    else
+    {
+        cout << "Произошла ошибка (Элемент с таким значением не найден)" << endl;
+    }
+
+}
+
+void DelArr(int*& arr, int& n)
+{
+    int k, result = 0, buf = 0, buf2 = 0;
+    cout << "Элементы с каким значением удалить: ";
+    cin >> k;
+    for (int i = 0; i < n; i++)
+    {
+        if (arr[i] == k) { result = 1; buf++; }
+    }
+    if (result == 1)
+    {
+        int* newArray = new int[n - buf];
+        for (int i = 0; i < n; i++)
+        {
+            if (arr[i] != k)
+            {
+                newArray[i - buf2] = arr[i];
+            }
+            else
+            {
+                buf2++;
+                continue;
+            }
+        }
+        delete[]arr;
+        arr = newArray;
+        n -= buf;
+    }
+    else
+    {
+        cout << "Произошла ошибка (Элемент с таким значением не найден)" << endl;
+    }
+}
