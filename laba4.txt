@@ -1,0 +1,542 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstdlib>
+#include <stdlib.h>
+
+
+using namespace std;
+
+struct Node {
+
+	char* seria;
+	struct Node* next;
+
+};
+
+struct Node* first;
+
+struct Data {
+
+	string name;
+	int cost;
+	bool availability;
+	float weight;
+
+};
+
+
+char* Serialize(struct Data);
+Data DeSerialize(char*);
+
+bool pop(struct Data& data);
+bool pop_all();
+bool push_back(struct Data);
+void display();
+void fileInsert();
+void finding(string index);
+void File();
+void clearFile();
+
+
+
+int main()
+{
+
+	setlocale(LC_ALL, "ru");
+	
+	bool exit = 0;
+
+	do {
+		cout << "\nМеню:\n";
+		cout << "1. Содержимое корзины\n";
+		cout << "2. Добавить новый товар в корзину\n";
+		cout << "3. Вытащить товар из корзины\n";
+		cout << "4. Очистить корзину\n";
+		cout << "0. Выход\n";
+		cout << "5. Считать корзину из файла\n";
+		cout << "6. Создание файла корзины\n";
+		cout << "7. Очистить файл\n";
+
+		short int ch;
+
+		cin >> ch;
+
+		switch (ch)
+		{
+
+		case 1: {
+			display();
+			break;
+		}
+
+		case 2: {
+			struct Data data;
+
+			cout << "\nНазвание цветка="; cin >> data.name;
+			cout << "\nЦена цветка (в рублях)="; cin >> data.cost;
+			cout << "\nНаличие цветка="; cin >> data.availability;
+			cout << "\nВес цветка (в граммах)="; cin >> data.weight;
+
+			
+			push_back(data);
+			break;
+		}
+
+		case 3: {
+
+			cout << "\nЧто будем искать?):\n";
+			string index;
+
+			cin >> index;
+			
+
+			finding(index);
+
+			break;
+		}
+
+		case 4: {
+			
+			pop_all();
+			break;
+		}
+
+		case 0: {
+			exit = 1;
+			break;
+		}
+
+		case 5: {
+			fileInsert();
+			break;
+		}
+
+		case 6: {
+			File();
+			break;
+		}
+
+		case 7: {
+			clearFile();
+			break;
+		}
+
+
+		default:
+			cout << "\nОшибка выбора пункта меню, пожалуйста повторите)\n";
+			break;
+		}
+
+
+
+	} while (exit != 1);
+
+
+	
+	pop_all();
+
+	return 0;
+}
+
+bool push_back(struct Data data) {
+
+	struct Node* temp;
+
+	temp = first;
+
+	bool exist = 0;
+
+	//Полученные данные сериализуем
+	char* new_seria = Serialize(data);
+
+	if (first != NULL) {
+
+		temp = first;
+
+
+		while (temp->next != NULL) {
+			temp = temp->next;
+		}
+
+		struct Node* last;
+		last = new Node();
+
+		temp->next = last;
+
+		temp->next->seria = new_seria;
+
+		cout << "\nЦветок " << data.name << " стоимостью " << data.cost;
+
+
+	}
+	else {
+		struct Node* temp;
+		temp = new Node();
+
+		temp->seria = new_seria;
+
+		temp->next = NULL;
+		first = temp;
+		cout << "\nЦветок " << data.name << " стоимостью " << data.cost;
+
+	}
+	return 1;
+};
+
+bool push_back(char* new_seria) {
+
+	struct Node* temp;
+
+	temp = first;
+
+	bool exist = 0;
+
+	if (first != NULL) {
+
+		temp = first;
+
+		//Идём в конец
+		while (temp->next != NULL) {
+			temp = temp->next;
+		}
+
+		//Создаем "последний" узел заново и выделяем память
+		struct Node* last;
+		last = new Node();
+
+		//Восстанавливаем связь
+		temp->next = last;
+
+		//Присваиваем последнему узлу данные
+		temp->next->seria = new_seria;
+
+
+
+	}
+	else {
+		// В случае если мы создаём первый эл-т
+		struct Node* temp;
+		//Выделение памяти
+		temp = new Node();
+
+		temp->seria = new_seria;
+
+		temp->next = first;
+		first = temp;
+		
+
+	}
+	return 1;
+};
+
+char* Serialize(struct Data data) {
+
+	size_t s = data.name.size();
+
+	int n0 = sizeof(size_t);
+	int n1 = s;
+	int n2 = sizeof(int);
+	int n3 = sizeof(bool);
+	int n4 = sizeof(float);
+
+	int n = n0 + n1 + n2 + n3 + n4;
+
+	char* new_seria = new char[n];
+
+	char* d0 = reinterpret_cast<char*>(&s);
+	char* d1 = const_cast<char*>(data.name.c_str());
+	char* d2 = reinterpret_cast<char*>(&data.cost);
+	char* d3 = reinterpret_cast<char*>(&data.availability);
+	char* d4 = reinterpret_cast<char*>(&data.weight);
+
+	for (int i = 0; i < n0; i++) new_seria[i] = d0[i];
+	for (int i = 0; i < n1; i++) new_seria[i + n0] = d1[i];
+	for (int i = 0; i < n2; i++) new_seria[i + n0 + n1] = d2[i];
+	for (int i = 0; i < n3; i++) new_seria[i + n0 + n1 + n2] = d3[i];
+	for (int i = 0; i < n4; i++) new_seria[i + n0 + n1 + n2 + n3] = d4[i];
+
+	return new_seria;
+}
+
+Data DeSerialize(char* seria) {
+
+	int n0, n1, n2, n3, n4;
+	n0 = sizeof(size_t);
+	n2 = sizeof(int);
+	n3 = sizeof(bool);
+	n4 = sizeof(float);
+
+	size_t p = *reinterpret_cast<size_t*>(seria);
+	n1 = p;
+
+	struct Data data;
+
+	string temp(seria + n0, p);
+
+	data.name = temp;
+
+	data.cost = *reinterpret_cast<int*>(seria + n0 + n1);
+	data.availability = *reinterpret_cast<bool*>(seria + n0 + n1 + n2);
+	data.weight = *reinterpret_cast<float*>(seria + n0 + n1 + n2 + n3);
+
+	return data;
+
+}
+
+void display() {
+
+	struct Node* temp;
+
+	// проверка на пустоту
+	if (first == NULL) {
+		cout << "\nКорзина пустая\n" << endl;
+	}
+	else {
+
+		temp = first;
+
+		cout << "\nСостояние корзины: \n";
+		while (temp != NULL) {
+			
+			
+			Data data;
+			data = DeSerialize(temp->seria);
+
+			cout << "\nНазвание цветка: " << data.name;
+			cout << "\nСтоимость цветка (в рублях): " << data.cost;
+			cout << "\nНаличие цветка: " << (data.availability == true ? "Да" : "Нет");
+			cout << "\nВес цветка (в граммах): " << data.weight << " г" << endl;
+
+			
+			temp = temp->next;
+		}
+
+	}
+
+};
+
+bool pop(struct Data& data) {
+
+	struct Node* temp;
+
+	// проверка на пустой стек
+	if (first == NULL) {
+		return 0;
+	}
+	else {
+
+		// верхнее значение помещаем в temp
+		temp = first;
+
+		//Создаём копию данных
+		data = DeSerialize(temp->seria);
+
+		// в вершину стека кладем следующий узел сверху
+		first = first->next;
+
+		// разрушаем связь для удаляемого узла
+		temp->next = NULL;
+
+		//Удаляем поле данных
+		delete[] temp->seria;
+
+		// освобождаем память верхнего узла
+		free(temp);
+	}
+
+
+	return 1;
+};
+
+bool pop_all() {
+	
+	struct Data data;
+	if (first != NULL) {
+		while (pop(data) != 0);
+		cout << "\nОчищение корзины ......\n";
+
+		cout << "\nКорзина успешно очищена)\n";
+	}
+	else {
+		
+		cout << "\nКорзина пустая\n";
+	}
+	return 1;
+};
+
+void fileInsert() {
+
+	ifstream fin("file.dat", ios::binary);
+
+	char* new_seria;
+	int n;
+	while (!fin.eof()) {
+		
+		if (fin.read((char*)&n, sizeof(int))) {
+			
+			char* seria = new char[n];
+			fin.read(seria, n);
+			push_back(seria);
+		}
+	}
+
+	fin.close();
+}
+
+void File() {
+
+	
+	bool exit = 0;
+	ofstream fout("file.dat", ios::app | ios::binary);
+
+	do {
+
+		
+		unsigned short int ch;
+		cout << "\n\n1. Записать новый элемент";
+		cout << "\n0. Выйти\n\n->";
+		cin >> ch;
+
+		if (ch == 0) exit = 1;
+		if (ch == 1) {
+
+			Data data;
+
+			
+			cout << "Название цветка:"; cin >> data.name;
+			cout << "Стоимость цветка:"; cin >> data.cost;
+			cout << "Наличие цветка:"; cin >> data.availability;
+			cout << "Вес цветка:"; cin >> data.weight;
+
+			char* seria = Serialize(data);
+
+			int n0, n1, n2, n3, n4, n;
+			n0 = sizeof(size_t);
+			n2 = sizeof(int);
+			n3 = sizeof(bool);
+			n4 = sizeof(float);
+
+			size_t p = *reinterpret_cast<size_t*>(seria);
+			n1 = p;
+
+			
+			n = n0 + n1 + n2 + n3 + n4;
+
+			fout.write((char*)&n, sizeof(int));
+			fout.write(seria, n);
+
+			
+			delete[] seria;
+
+		}
+
+
+	} while (exit != 1);
+
+	fout.close();
+
+}
+
+void clearFile() {
+
+	fstream file("file.dat", ofstream::out | ofstream::trunc);
+
+	file.close();
+
+
+}
+
+void finding(string index) {
+
+	char* first_seria;
+	bool check = 0;
+
+	
+	if (first != NULL) {
+
+		int index_int;
+		float index_float;
+
+		//для движения по списку
+		struct Node* temp;
+		int count = 0;
+		temp = first;
+
+		while (temp != NULL) {
+			temp = temp->next;
+			count++;
+		}
+
+		temp = first;
+
+		//Преобразуем строку в значения 
+		index_int = atoi(index.c_str());
+		index_float = atof(index.c_str());
+
+		
+		bool once = 0;
+
+		
+		struct Data data;
+
+
+
+		for (int i = 0; i < count; i++) {
+
+			data = DeSerialize(temp->seria); // Десериализуем, получаем данные из узла
+
+			if (index == data.name || index_float == data.weight || index_int == data.cost) { 
+
+				
+				if (once == 0) {
+					cout << "\nНайденые товары:\n";
+					once = 1;
+				}
+
+				cout << "\nНазвание цветка: " << data.name;
+				cout << "\nСтоимость цветка: " << data.cost << " рублей";
+				cout << "\nВес цветка: " << data.weight << " г";
+				cout << "\nЕсть ли цветок в корзине? " << (data.availability == true ? "Да" : "Нет");
+				cout << endl;
+
+				
+				temp = first->next;
+
+				pop(data);
+				count--;
+
+				cout << "\nУдаление товара из списка .....\n";
+				cout << "\nТовар удален из корзины\n"; 
+
+			}
+			else {
+				
+				if (temp != NULL) {
+
+					struct Data new_data;
+					pop(new_data);
+					push_back(new_data);
+
+				}
+
+			}
+
+		}
+
+		
+		if (once == 0) {
+			cout << "\nТаких товаров не найдено\n";
+		}
+		else {
+			cout << "\nТовары, подходящие по критерию поиска удалены\n";
+		}
+
+	}
+	else { 
+
+		cout << "\nКорзина пустая\n";
+
+	}
+
+}
